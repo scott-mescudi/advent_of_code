@@ -1,0 +1,46 @@
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+/bin/
+/obj/
+*.test
+*.gw
+/vendor/
+
+# C
+/build/
+out/
+*.out
+*.exe
+*.obj
+*.so
+*.dylib
+*.a
+*.o
+/vendor/
+.vscode/
+.idea/
+*.swp
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+
+# Rust
+/target/
+**/target/
+*.rs.bk
+*.exe
+Cargo.lock
+*.d
+.idea/
+.vscode/
+*~
+
+# .env files
+.env
+.env.local
+.env.*.local
