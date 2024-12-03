@@ -37,7 +37,7 @@ type indices struct {
 
 
 func main() {
-	data, err := os.ReadFile("../testdata.txt")
+	data, err := os.ReadFile("../data.txt")
 	if err != nil {
 		log.Fatalln(err)
 	}	
