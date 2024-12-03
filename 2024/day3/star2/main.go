@@ -82,4 +82,3 @@ func main() {
 	fmt.Println(getok(nd))
 }
 
-// mul(1,2)don't()mul(3,4)do()mul(5,6)garbage()mul(7,8)don't()mul(9,10)do()mul(11,12)
