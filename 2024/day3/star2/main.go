@@ -28,26 +28,58 @@ func getok(data string) int {
 	return total
 }
 
-//do()mul(2,3)don't()mul(4,5)do()mul(6,7)
+
+
+
+type indices struct {
+	idx, lidx int
+}
 
 
 func main() {
 	data, err := os.ReadFile("../testdata.txt")
 	if err != nil {
 		log.Fatalln(err)
+	}	
+
+	const (
+		w1 = "don't()"
+		w2 = "do()"
+	)
+
+	ids := []indices{}
+
+	var lidx int = 0
+	for {
+		idx := strings.Index(string(data[lidx:]), w1)
+		if idx == -1 {
+			break
+		}
+		idx += lidx 
+
+		
+		idx2 := strings.Index(string(data[idx+len(w1):]), w2)
+		if idx2 == -1 {
+			oc1 := indices{idx: idx, lidx: len(data)}
+			ids = append(ids, oc1)
+
+			break
+		}
+
+		idx2 += idx + len(w1) 
+		oc1 := indices{idx: idx, lidx: idx2 + len(w2)}
+		ids = append(ids, oc1)
+
+		lidx = oc1.lidx
 	}
-	re := regexp.MustCompile(`don't\(\).*?do\(\)`)
-	matches := re.FindStringSubmatch(string(data))
-
-	stuff := string(data)
 
 
-	for _, v := range matches {
-		stuff = strings.ReplaceAll(stuff, v, " ")
+	var nd string = string(data)
+	for _, s := range ids {
+		nd = strings.ReplaceAll(string(nd), string(data[s.idx:s.lidx]), " ")
 	}
 
-
-	fmt.Println(stuff)
-
-	fmt.Println(getok(string(stuff)))
+	fmt.Println(getok(nd))
 }
+
+// mul(1,2)don't()mul(3,4)do()mul(5,6)garbage()mul(7,8)don't()mul(9,10)do()mul(11,12)
