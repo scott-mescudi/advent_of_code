@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -32,12 +34,8 @@ func getBoard(filename string) [][]rune {
 	scanner := bufio.NewScanner(file)
 
 	board := [][]rune{}
-	for scanner.Scan() {
-		row := []rune{}
-		for _, v := range scanner.Text() {
-			row = append(row, v)
-		}
-		board = append(board, row)
+	for scanner.Scan() {		
+		board = append(board, []rune(scanner.Text()))
 	}
 
 	return board
@@ -198,7 +196,7 @@ func lookForLoop(board [][]rune, nx, ny int,np rune) bool {
 
 		visits[x][y]++
 
-		if visits[x][y] >= 10 {
+		if visits[x][y] >= 5 {
 			return true
 		}
 
@@ -210,59 +208,64 @@ func lookForLoop(board [][]rune, nx, ny int,np rune) bool {
 	return false
 }
 
+func CopyMatrix(matrix [][]rune) [][]rune {
+	// Create a new matrix with the same dimensions
+	rows := len(matrix)
+	cols := len(matrix[0])
+	newMatrix := make([][]rune, rows)
+	for i := 0; i < rows; i++ {
+		newMatrix[i] = make([]rune, cols)
+	}
+
+	// Copy elements from the original matrix to the new matrix
+	for i := 0; i < rows; i++ {
+		for j := 0; j < cols; j++ {
+			newMatrix[i][j] = matrix[i][j]
+		}
+	}
+	return newMatrix
+}
+
 func main() {
 	start := time.Now()
-    tb := getBoard("../data.txt")
 	board2 := getBoard("../data.txt")
 	x, y, dir := findStart(board2)
     crosses := movePlayere(board2, x ,y, dir)
 
-    total := 0
+    var total int64 = 0
+	var wg sync.WaitGroup
     for _, cross := range crosses {
-        switch cross.dir {
-        case '^':
-            if cross.y != 0 {
-                tb[cross.y-1][cross.x] = '#'
-            }
-        case '>':
-            if cross.x != len(tb[cross.y])-1 {
-                tb[cross.y][cross.x+1] = '#'
-            }
-        case 'v':
-            if cross.y != len(tb)-1 {
-                tb[cross.y+1][cross.x] = '#'
-            }
-        case '<':
-            if cross.x != 0 {
-                tb[cross.y][cross.x-1] = '#'
-            }
-        }
+		wg.Add(1)
+		go func (){
+			defer wg.Done()
+			tb := CopyMatrix(board2)
 
-        if ok := lookForLoop(tb, x, y, dir); ok {
-            total++
-        }
+			switch cross.dir {
+			case '^':
+				if cross.y != 0 {
+					tb[cross.y-1][cross.x] = '#'
+				}
+			case '>':
+				if cross.x != len(tb[cross.y])-1 {
+					tb[cross.y][cross.x+1] = '#'
+				}
+			case 'v':
+				if cross.y != len(tb)-1 {
+					tb[cross.y+1][cross.x] = '#'
+				}
+			case '<':
+				if cross.x != 0 {
+					tb[cross.y][cross.x-1] = '#'
+				}
+			}
 
-		switch cross.dir {
-        case '^':
-            if cross.y != 0 {
-                tb[cross.y-1][cross.x] = '.'
-            }
-        case '>':
-            if cross.x != len(tb[cross.y])-1 {
-                tb[cross.y][cross.x+1] = '.'
-            }
-        case 'v':
-            if cross.y != len(tb)-1 {
-                tb[cross.y+1][cross.x] = '.'
-            }
-        case '<':
-            if cross.x != 0 {
-                tb[cross.y][cross.x-1] = '.'
-            }
-        }
-
+			if ok := lookForLoop(tb, x, y, dir); ok {
+				atomic.AddInt64(&total, 1)
+			}
+		}()
     }
 
+	wg.Wait()
     fmt.Println(total)
 	fmt.Println(time.Since(start))
 }
